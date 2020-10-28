@@ -1,0 +1,47 @@
+version: '3.3'
+
+services:
+    apache2-event:
+        depends_on:
+            - php-fpm
+        build:
+            context: ./apache2-event
+            dockerfile: Dockerfile
+        ports:
+            - 80:80
+            - 443:443
+        restart: always
+        volumes:
+            - /var/www/html:/var/www/html/
+            - ./sites/sites-conf/:/usr/local/apache2/sites-conf/
+            - ./logs/apache2/:/var/log/apache2/
+        network_mode: host
+        environment:
+            TZ: ${TZ}
+    php-fpm:
+        depends_on:
+            - db
+        build:
+            context: ./php-fpm
+            dockerfile: Dockerfile
+        restart: always
+        volumes:
+            - /var/www/html:/var/www/html/
+            - ./php_debug:/php_debug
+        user: www-data:www-data
+        network_mode: host
+        environment:
+            TZ: ${TZ}
+            MYSQL_SERVER: db
+            MYSQL_USER_EXAMPLE: root
+            MYSQL_PASSWORD_EXAMPLE: damp-mysql-database-root-password
+            MYSQL_DATABASE_EXAMPLE: information_schema
+    db:
+        image: mysql:5.7
+        volumes:
+            - /var/lib/damp_mysql:/var/lib/mysql
+        restart: always
+        network_mode: host
+        environment:
+            #TZ: ${TZ}
+            MYSQL_ROOT_PASSWORD: damp-mysql-database-root-password
